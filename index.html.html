@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NovaMart AI İade Otomasyonu — BPMN Süreç Haritası, Jira Panosu ve Karar Simülatörü</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+    .bpmn-node {
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .bpmn-node:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px -4px rgba(30, 58, 95, 0.18);
+    }
+    .bpmn-node.active-node {
+      ring: 3px solid #0d9488;
+      outline: 3px solid #0d9488;
+      background-color: #f0fdfa;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Top Header -->
+  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider bg-teal-500/20 text-teal-300 border border-teal-500/30 rounded-full">Portfolyo Simülasyonu</span>
+          <span class="text-xs text-slate-400">Hazırlayan: Beyza Pamuk • İş Analisti</span>
+        </div>
+        <h1 class="text-lg sm:text-xl font-extrabold tracking-tight mt-1">NovaMart Akıllı İade ve Çözüm Portalı — BPMN, Jira &amp; AI Karar Motoru</h1>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex flex-wrap gap-1.5 bg-slate-800/90 p-1.5 rounded-xl border border-slate-700" aria-label="Ana Görünümler">
+        <button id="tabBtn-bpmn" onclick="switchMainTab('bpmn')" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition bg-teal-600 text-white shadow">
+          1. BPMN Süreç Haritası (As-Is / To-Be)
+        </button>
+        <button id="tabBtn-jira" onclick="switchMainTab('jira')" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition text-slate-300 hover:text-white hover:bg-slate-700/60">
+          2. Jira Scrum &amp; User Story Panosu
+        </button>
+        <button id="tabBtn-sim" onclick="switchMainTab('sim')" class="px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition text-slate-300 hover:text-white hover:bg-slate-700/60">
+          3. Canlı AI İade Karar Simülatörü
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- KPI Banner -->
+  <section class="bg-white border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+        <div>
+          <p class="text-xs text-slate-500 font-medium">Ortalama Çözüm Süresi KPI</p>
+          <p class="text-base sm:text-lg font-extrabold text-slate-900">4–5 Gün &rarr; <span class="text-teal-600">&lt; 1 Dk</span></p>
+        </div>
+        <span class="text-xs font-bold px-2 py-1 rounded bg-teal-100 text-teal-800">Hedef</span>
+      </div>
+      <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+        <div>
+          <p class="text-xs text-slate-500 font-medium">Müşteri Memnuniyeti (CSAT)</p>
+          <p class="text-base sm:text-lg font-extrabold text-slate-900">%64 &rarr; <span class="text-teal-600">%85+</span></p>
+        </div>
+        <span class="text-xs font-bold px-2 py-1 rounded bg-blue-100 text-blue-800">6 Ay</span>
+      </div>
+      <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+        <div>
+          <p class="text-xs text-slate-500 font-medium">Sahte İade (Fraud) Tasarrufu</p>
+          <p class="text-base sm:text-lg font-extrabold text-slate-900">%70 Azalma <span class="text-teal-600">(~315B ₺/Ay)</span></p>
+        </div>
+        <span class="text-xs font-bold px-2 py-1 rounded bg-emerald-100 text-emerald-800">Finans</span>
+      </div>
+      <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+        <div>
+          <p class="text-xs text-slate-500 font-medium">Canlıya Geçiş Stratejisi</p>
+          <p class="text-base sm:text-lg font-extrabold text-slate-900">Gölge Modu + <span class="text-amber-600">%10 Beta</span></p>
+        </div>
+        <span class="text-xs font-bold px-2 py-1 rounded bg-amber-100 text-amber-800">Usability</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content Container -->
+  <main class="max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 flex-1">
+
+    <!-- ================= TAB 1: BPMN SÜREÇ HARİTASI ================= -->
+    <section id="view-bpmn" class="space-y-6">
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-100">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900">Etkileşimli BPMN İş Akışı Haritası (As-Is vs. To-Be)</h2>
+            <p class="text-sm text-slate-600">Diyagram üzerindeki herhangi bir süreç kutusuna tıklayarak o adımın <strong>İş Kurallarını</strong>, <strong>Paydaş Rolünü</strong> ve <strong>BRD Gereksinim Kodunu</strong> inceleyebilirsiniz.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="flowFilter-both" onclick="setFlowFilter('both')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-white">Her İkisini Karşılaştır</button>
+            <button id="flowFilter-asis" onclick="setFlowFilter('asis')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Sadece As-Is (Manuel)</button>
+            <button id="flowFilter-tobe" onclick="setFlowFilter('tobe')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Sadece To-Be (AI Destekli)</button>
+          </div>
+        </div>
+
+        <!-- AS-IS FLOW -->
+        <div id="lane-asis" class="mt-5 p-4 rounded-xl bg-rose-50/70 border border-rose-200">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-rose-800 bg-rose-100 px-2.5 py-1 rounded-md border border-rose-300">
+              MEVCUT SÜREÇ (AS-IS) — Manuel Çağrı Merkezi, E-Posta ve Excel Akışı (Ortalama 4–5 İş Günü)
+            </span>
+            <span class="text-xs font-semibold text-rose-700">Darboğaz: Manuel İnceleme &amp; Departmanlar Arası Kopukluk</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+            <div onclick="selectBpmnNode('asis-1')" id="node-asis-1" class="bpmn-node bg-white p-3.5 rounded-xl border-2 border-rose-300 shadow-sm">
+              <div class="text-xs font-bold text-rose-600 mb-1">Adım 1 • Müşteri</div>
+              <div class="text-sm font-bold text-slate-900">Çağrı Merkezi / E-Posta</div>
+              <p class="text-xs text-slate-600 mt-1">Kusurlu ürün teslim alındığında telefon veya e-posta ile talep açılır.</p>
+            </div>
+            <div onclick="selectBpmnNode('asis-2')" id="node-asis-2" class="bpmn-node bg-white p-3.5 rounded-xl border-2 border-rose-300 shadow-sm">
+              <div class="text-xs font-bold text-rose-600 mb-1">Adım 2 • Temsilci</div>
+              <div class="text-sm font-bold text-slate-900">Manuel Tek Tek Kontrol</div>
+              <p class="text-xs text-slate-600 mt-1">Temsilci e-postaları tek tek açar, fotoğrafları gözle inceler.</p>
+            </div>
+            <div onclick="selectBpmnNode('asis-3')" id="node-asis-3" class="bpmn-node bg-white p-3.5 rounded-xl border-2 border-rose-300 shadow-sm">
+              <div class="text-xs font-bold text-rose-600 mb-1">Adım 3 • Temsilci &rarr; Depo</div>
+              <div class="text-sm font-bold text-slate-900">Excel Üzerinden Sorgu</div>
+              <p class="text-xs text-slate-600 mt-1">Ürün çıkış durumu depo ve kargo ekibine Excel listesiyle sorulur.</p>
+            </div>
+            <div onclick="selectBpmnNode('asis-4')" id="node-asis-4" class="bpmn-node bg-white p-3.5 rounded-xl border-2 border-rose-300 shadow-sm">
+              <div class="text-xs font-bold text-rose-600 mb-1">Adım 4 • Depo Ekibi</div>
+              <div class="text-sm font-bold text-slate-900">Gecikmeli Depo Dönüşü</div>
+              <p class="text-xs text-slate-600 mt-1">Depo yoğunluğa göre 2–3 iş günü içinde Excel'e yanıt yazar.</p>
+            </div>
+            <div onclick="selectBpmnNode('asis-5')" id="node-asis-5" class="bpmn-node bg-rose-100/80 p-3.5 rounded-xl border-2 border-rose-400 shadow-sm">
+              <div class="text-xs font-bold text-rose-800 mb-1">Adım 5 • Kapanış (Gün 4-5)</div>
+              <div class="text-sm font-bold text-rose-950">Manuel Onay / Ret</div>
+              <p class="text-xs text-rose-800 mt-1">Cevaba göre manuel kargo kodu üretilir veya talep reddedilir.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- TO-BE FLOW -->
+        <div id="lane-tobe" class="mt-5 p-4 rounded-xl bg-teal-50/60 border border-teal-200">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-teal-900 bg-teal-100 px-2.5 py-1 rounded-md border border-teal-300">
+              GELECEK SÜREÇ (TO-BE) — Yapay Zeka Destekli Otomatik Karar ve Entegrasyon Akışı (&lt; 1 Dakika)
+            </span>
+            <span class="text-xs font-semibold text-teal-800">Zero-Touch Hedefi: %65+ Otomasyon</span>
+          </div>
+
+          <!-- Pre-processing + AI Analysis Steps -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+            <div onclick="selectBpmnNode('tobe-1')" id="node-tobe-1" class="bpmn-node active-node bg-white p-4 rounded-xl border-2 border-slate-300 shadow-sm">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-teal-700">Adım 1 • Müşteri Ekranı</span>
+                <span class="text-[11px] font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-700">FR-01 / NFR-01</span>
+              </div>
+              <div class="text-sm font-bold text-slate-900 mt-1">Self-Servis İade &amp; Görsel Yükleme</div>
+              <p class="text-xs text-slate-600 mt-1">Müşteri uygulamadan iade nedenini seçer ve en fazla 3 adet (maks. 5 MB) fotoğraf yükler.</p>
+            </div>
+
+            <div onclick="selectBpmnNode('tobe-2')" id="node-tobe-2" class="bpmn-node bg-white p-4 rounded-xl border-2 border-slate-300 shadow-sm">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-teal-700">Adım 2 • Kural &amp; Kalite Motoru</span>
+                <span class="text-[11px] font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-700">FR-02 / FR-03 / EC-02</span>
+              </div>
+              <div class="text-sm font-bold text-slate-900 mt-1">14 Gün, Bulanıklık &amp; Kayıp Kargo Kontrolü</div>
+              <p class="text-xs text-slate-600 mt-1">Süre &gt;14 gün ise anında reddeder; fotoğraf bulanıksa veya yabancı cisim varsa yeniden yükleme ister; kayıp kargoda Kargo API'yi sorgular.</p>
+            </div>
+
+            <div onclick="selectBpmnNode('tobe-3')" id="node-tobe-3" class="bpmn-node bg-indigo-50/70 p-4 rounded-xl border-2 border-indigo-400 shadow-sm">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-indigo-800">Adım 3 • Veri Bilimi AI Servisi</span>
+                <span class="text-[11px] font-mono bg-indigo-100 px-2 py-0.5 rounded text-indigo-900">FR-04 / NFR-02 (&lt;5sn)</span>
+              </div>
+              <div class="text-sm font-bold text-indigo-950 mt-1">Hasar Yüzdesi &amp; Web Sahtecilik Analizi</div>
+              <p class="text-xs text-indigo-900 mt-1">Fotoğrafı internette araştırır (tersine görsel arama), hasar %, sahtecilik % ve bulanıklık verilerini üretip kayıt altına alır.</p>
+            </div>
+          </div>
+
+          <!-- Decision Gateway Branches -->
+          <div class="border-t border-teal-200 pt-4">
+            <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2.5">Adım 4 • Yapay Zeka Karar Noktası (XOR Decision Gateway — 3 Yönlendirme Hattı):</div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div onclick="selectBpmnNode('tobe-green')" id="node-tobe-green" class="bpmn-node bg-emerald-50 p-4 rounded-xl border-2 border-emerald-500 shadow-sm">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-extrabold text-emerald-800 uppercase">YEŞİL HAT • Otomatik Onay</span>
+                  <span class="text-[11px] font-mono bg-emerald-200/70 px-2 py-0.5 rounded text-emerald-900">FR-05</span>
+                </div>
+                <div class="text-sm font-bold text-emerald-950 mt-1">Kargo Kodu Üretimi &amp; WMS Kaydı</div>
+                <p class="text-xs text-emerald-900 mt-1">Ürün gerçekten hasarlı (Hasar &ge;%85), fotoğraf net ve tutar &lt;5.000 TL ise sistem anında onay verir ve Kargo API'den kod üretir.</p>
+              </div>
+
+              <div onclick="selectBpmnNode('tobe-yellow')" id="node-tobe-yellow" class="bpmn-node bg-amber-50 p-4 rounded-xl border-2 border-amber-500 shadow-sm">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-extrabold text-amber-900 uppercase">SARI HAT • Temsilciye Aktarım</span>
+                  <span class="text-[11px] font-mono bg-amber-200/70 px-2 py-0.5 rounded text-amber-900">FR-06 / AC-01</span>
+                </div>
+                <div class="text-sm font-bold text-amber-950 mt-1">AI Raporuyla Müşteri Hizmetlerine</div>
+                <p class="text-xs text-amber-900 mt-1">Tutar &ge;5.000 TL (aldatıcı fotoğraf dahil), güven skoru %50–84 arası veya "Ürün Ulaşmadı" ise AI analiziyle temsilciye aktarılır.</p>
+              </div>
+
+              <div onclick="selectBpmnNode('tobe-red')" id="node-tobe-red" class="bpmn-node bg-rose-50 p-4 rounded-xl border-2 border-rose-500 shadow-sm">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-extrabold text-rose-800 uppercase">KIRMIZI HAT • Otomatik Ret</span>
+                  <span class="text-[11px] font-mono bg-rose-200/70 px-2 py-0.5 rounded text-rose-900">FR-02 / FR-04</span>
+                </div>
+                <div class="text-sm font-bold text-rose-950 mt-1">Gerekçeli Otomatik İade Reddi</div>
+                <p class="text-xs text-rose-900 mt-1">İade süresi (14 gün) geçmişse veya (&lt;5.000 TL siparişte) fotoğraf internetten indirilmiş/sahte ise sistem anında reddeder.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Selected Node Detail Inspector -->
+        <div id="bpmn-inspector" class="mt-5 p-4 rounded-xl bg-slate-900 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span id="insp-badge" class="px-2 py-0.5 text-xs font-bold rounded bg-teal-500 text-slate-950">TO-BE ADIM 1</span>
+              <h3 id="insp-title" class="text-base font-bold">Self-Servis İade &amp; Görsel Yükleme Ekranı</h3>
+            </div>
+            <p id="insp-desc" class="text-xs sm:text-sm text-slate-300">Müşteri NovaMart mobil veya web uygulaması üzerinden siparişini seçer, şikayet nedenini işaretler ve sistem optimizasyonu gereği en fazla 3 adet (her biri maks. 5 MB) fotoğraf yükler.</p>
+          </div>
+          <div class="flex flex-wrap gap-2 shrink-0">
+            <div class="bg-slate-800 px-3 py-2 rounded-lg border border-slate-700">
+              <span class="block text-[10px] uppercase text-slate-400">Sorumlu Paydaş / Sistem</span>
+              <span id="insp-actor" class="text-xs font-bold text-teal-300">Müşteri &amp; Frontend Arayüzü</span>
+            </div>
+            <div class="bg-slate-800 px-3 py-2 rounded-lg border border-slate-700">
+              <span class="block text-[10px] uppercase text-slate-400">BRD Gereksinim Kodu</span>
+              <span id="insp-req" class="text-xs font-bold text-amber-300">FR-01, NFR-01 (3 Fotoğraf / 5 MB)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 2: JIRA SCRUM & USER STORY PANOSU ================= -->
+    <section id="view-jira" class="hidden space-y-6">
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-100">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900">Jira Agile Scrum Panosu — Sprint 1: Akıllı İade Otomasyonu</h2>
+            <p class="text-sm text-slate-600">Portfolyoda tanımladığımız <strong>Kullanıcı Hikayeleri (User Stories)</strong>, <strong>Uç Durumlar (Edge Cases)</strong> ve <strong>Gherkin Kabul Kriterleri</strong> kartlarına tıklayarak detayları inceleyebilir ve kartların durumunu değiştirebilirsiniz.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-semibold text-slate-500">Filtrele:</span>
+            <select id="jiraRoleFilter" onchange="renderJiraBoard()" class="text-xs font-semibold border border-slate-300 rounded-lg px-2.5 py-1.5 bg-white">
+              <option value="ALL">Tüm Roller ve Kartlar (6)</option>
+              <option value="Müşteri">Müşteri Hikayeleri ve Edge Case'ler</option>
+              <option value="Temsilci">Müşteri Temsilcisi ve AI Hizalama</option>
+              <option value="Teknik">API, Veri Bilimi ve NFR Görevleri</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Kanban Columns -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-5">
+          <!-- Column: TO DO -->
+          <div class="bg-slate-100/90 p-3.5 rounded-xl border border-slate-200">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-extrabold uppercase tracking-wider text-slate-700">YAPILACAK (TO DO / BETA)</span>
+              <span id="count-todo" class="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-800">0</span>
+            </div>
+            <div id="col-todo" class="space-y-3"></div>
+          </div>
+
+          <!-- Column: IN PROGRESS -->
+          <div class="bg-blue-50/60 p-3.5 rounded-xl border border-blue-200">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-extrabold uppercase tracking-wider text-blue-900">GELİŞTİRMEDE (IN PROGRESS)</span>
+              <span id="count-prog" class="text-xs font-bold px-2 py-0.5 rounded-full bg-blue-200 text-blue-900">0</span>
+            </div>
+            <div id="col-prog" class="space-y-3"></div>
+          </div>
+
+          <!-- Column: DONE -->
+          <div class="bg-emerald-50/60 p-3.5 rounded-xl border border-emerald-200">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-900">ANALİZİ TAMAMLANDI (READY/DONE)</span>
+              <span id="count-done" class="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900">0</span>
+            </div>
+            <div id="col-done" class="space-y-3"></div>
+          </div>
+        </div>
+
+        <!-- Selected Jira Ticket Detail Panel -->
+        <div id="jira-detail" class="mt-6 p-5 rounded-xl bg-slate-50 border-2 border-slate-200">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-200">
+            <div class="flex items-center gap-2">
+              <span id="jd-key" class="px-2.5 py-1 text-xs font-mono font-bold rounded bg-slate-900 text-white">NOVA-101</span>
+              <h3 id="jd-title" class="text-base font-bold text-slate-900">Bir Kart Seçin</h3>
+            </div>
+            <span id="jd-type" class="text-xs font-bold px-2.5 py-1 rounded bg-teal-100 text-teal-800">User Story</span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div>
+              <h4 class="text-xs font-extrabold uppercase text-slate-500 mb-1">Kullanıcı Hikayesi / Edge Case Tanımı</h4>
+              <p id="jd-story" class="text-sm text-slate-800 bg-white p-3 rounded-lg border border-slate-200"></p>
+            </div>
+            <div>
+              <h4 class="text-xs font-extrabold uppercase text-slate-500 mb-1">Kabul Kriterleri (Given / When / Then)</h4>
+              <pre id="jd-ac" class="text-xs text-slate-800 bg-white p-3 rounded-lg border border-slate-200 whitespace-pre-wrap font-sans"></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 3: CANLI AI İADE KARAR SİMÜLATÖRÜ ================= -->
+    <section id="view-sim" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Input Controls (Left 6 Cols) -->
+        <div class="lg:col-span-6 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <div class="border-b border-slate-100 pb-3">
+            <h2 class="text-lg font-bold text-slate-900">Müşteri İade Talebi &amp; Uç Durum Test Paneli</h2>
+            <p class="text-xs sm:text-sm text-slate-600">Yazdığımız BRD kurallarını ve Edge Case senaryolarını canlı olarak test edin. Hızlı senaryo butonlarını kullanabilir veya değerleri kendiniz değiştirebilirsiniz.</p>
+          </div>
+
+          <!-- Quick Preset Buttons -->
+          <div>
+            <span class="block text-xs font-bold uppercase text-slate-500 mb-2">Hızlı Portfolyo Senaryoları:</span>
+            <div class="flex flex-wrap gap-1.5">
+              <button onclick="loadPreset('green')" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-100 text-emerald-900 hover:bg-emerald-200">1. Standart Hasarlı (&lt;5.000 TL)</button>
+              <button onclick="loadPreset('highval_fraud')" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-amber-100 text-amber-900 hover:bg-amber-200">2. &ge;5.000 TL + Aldatıcı Fotoğraf (AC-01)</button>
+              <button onclick="loadPreset('foreign_obj')" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-indigo-100 text-indigo-900 hover:bg-indigo-200">3. Kadrajda Yabancı Ürün (EC-01)</button>
+              <button onclick="loadPreset('not_received')" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-purple-100 text-purple-900 hover:bg-purple-200">4. Ürün Elime Ulaşmadı (EC-02)</button>
+              <button onclick="loadPreset('web_fake')" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-rose-100 text-rose-900 hover:bg-rose-200">5. İnternetten Sahte Fotoğraf (FR-04)</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+            <div>
+              <label for="sim-price" class="block text-xs font-bold text-slate-700 mb-1">Sipariş İade Tutarı (TL)</label>
+              <input id="sim-price" type="number" value="1250" min="50" max="50000" step="50" oninput="runSimulation()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold">
+              <span class="text-[11px] text-slate-500">Eşik: 5.000 TL ve üzeri temsilciye aktarılır.</span>
+            </div>
+
+            <div>
+              <label for="sim-days" class="block text-xs font-bold text-slate-700 mb-1">Teslimattan Geçen Süre (Gün)</label>
+              <input id="sim-days" type="number" value="5" min="1" max="45" oninput="runSimulation()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold">
+              <span class="text-[11px] text-slate-500">Eşik: Maksimum 14 gün (FR-02).</span>
+            </div>
+          </div>
+
+          <div>
+            <label for="sim-reason" class="block text-xs font-bold text-slate-700 mb-1">Müşterinin Seçtiği İade Nedeni</label>
+            <select id="sim-reason" onchange="runSimulation()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-medium bg-white">
+              <option value="damaged">Kusurlu / Hasarlı Ürün Geldi</option>
+              <option value="not_received">Ürün Elime Ulaşmadı / Kayıp Kargo (EC-02)</option>
+              <option value="wrong_item">Yanlış Ürün Gönderildi</option>
+            </select>
+          </div>
+
+          <div id="photo-controls-box" class="space-y-4 pt-1">
+            <div>
+              <label for="sim-photo" class="block text-xs font-bold text-slate-700 mb-1">Yüklenen Fotoğraf Durumu (AI Görüntü &amp; Web Taraması)</label>
+              <select id="sim-photo" onchange="runSimulation()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-medium bg-white">
+                <option value="clear_damaged">Net Fotoğraf — Gerçek Ürün Hasarı (%92 Hasar, %4 Fraud)</option>
+                <option value="blurry">Bulanık / Odak Dışı Fotoğraf (FR-03)</option>
+                <option value="foreign_object">Kadrajda Yabancı Başka Bir Ürün Daha Var (EC-01 — Güven %68)</option>
+                <option value="deceptive_web">İnternetten İndirilmiş / Aldatıcı Fotoğraf (FR-04 — %94 Fraud)</option>
+                <option value="uncertain">Belirsiz / Hafif Çizik (%64 Hasar Skoru)</option>
+              </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label for="sim-count" class="block text-xs font-bold text-slate-700 mb-1">Fotoğraf Adedi (NFR-01)</label>
+                <input id="sim-count" type="number" value="2" min="1" max="6" oninput="runSimulation()" class="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-sm">
+                <span class="text-[11px] text-slate-500">Sınır: Maksimum 3 adet</span>
+              </div>
+              <div>
+                <label for="sim-size" class="block text-xs font-bold text-slate-700 mb-1">Dosya Boyutu (MB - NFR-01)</label>
+                <input id="sim-size" type="number" value="3.2" min="0.5" max="15" step="0.5" oninput="runSimulation()" class="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-sm">
+                <span class="text-[11px] text-slate-500">Sınır: Maksimum 5 MB / dosya</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Output Decision & JSON Contract (Right 6 Cols) -->
+        <div class="lg:col-span-6 space-y-4">
+          <div id="sim-result-card" class="rounded-2xl border-2 p-5 shadow-sm transition-all">
+            <div class="flex items-center justify-between">
+              <span id="sim-badge" class="px-3 py-1 text-xs font-extrabold uppercase rounded-full">YEŞİL HAT • OTOMATİK ONAY</span>
+              <span id="sim-sla" class="text-xs font-mono font-bold">Yanıt Süresi: 1.8 sn (&lt; 5 sn NFR-02)</span>
+            </div>
+            <h3 id="sim-headline" class="text-xl font-extrabold mt-3">İade Talebi Otomatik Onaylandı</h3>
+            <p id="sim-explanation" class="text-sm mt-1.5 leading-relaxed"></p>
+
+            <div class="mt-4 pt-3 border-t border-black/10 grid grid-cols-3 gap-2 text-center">
+              <div class="bg-white/80 p-2 rounded-lg">
+                <span class="block text-[10px] uppercase font-bold text-slate-500">AI Hasar Yüzdesi</span>
+                <span id="metric-damage" class="text-base font-extrabold text-slate-900">%92</span>
+              </div>
+              <div class="bg-white/80 p-2 rounded-lg">
+                <span class="block text-[10px] uppercase font-bold text-slate-500">Web Sahtecilik %</span>
+                <span id="metric-fraud" class="text-base font-extrabold text-slate-900">%4</span>
+              </div>
+              <div class="bg-white/80 p-2 rounded-lg">
+                <span class="block text-[10px] uppercase font-bold text-slate-500">Kargo / WMS API</span>
+                <span id="metric-api" class="text-xs font-bold text-teal-800">Kod Üretildi</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Veri Bilimi Ekibi -> Yazılım Ekibi JSON Çıktısı -->
+          <div class="bg-slate-900 text-slate-100 rounded-2xl p-5 border border-slate-800 shadow-sm">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-teal-400">Veri Bilimi (AI) Ekibi &rarr; Yazılım Ekibi JSON Kaydı (Adım 5)</span>
+              <span class="text-[11px] text-slate-400">Veritabanına Loglanır</span>
+            </div>
+            <pre id="sim-json" class="text-xs font-mono text-emerald-300 overflow-x-auto leading-relaxed"></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // 1. BPMN Node Data
+    const bpmnNodes = {
+      'asis-1': {
+        badge: 'AS-IS ADIM 1',
+        title: 'Müşteri Çağrı Merkezi veya E-Posta İle Başvurur',
+        desc: 'Müşteri kusurlu ürünü teslim aldığında uygulama içi standart bir akış olmadığı için çağrı merkezini arar veya e-posta ekinde fotoğraf gönderir.',
+        actor: 'Müşteri',
+        req: 'As-Is Darboğazı (Manuel Giriş)'
+      },
+      'asis-2': {
+        badge: 'AS-IS ADIM 2',
+        title: 'Müşteri Temsilcisi Talepleri Tek Tek Açar',
+        desc: 'Temsilci gelen kutusundaki e-postaları manuel olarak açar, sipariş numarasını arar ve fotoğrafları herhangi bir standart olmadan inceler.',
+        actor: 'Müşteri Temsilcisi',
+        req: 'Aylık 450.000 TL Sahte İade Riski'
+      },
+      'asis-3': {
+        badge: 'AS-IS ADIM 3',
+        title: 'Depo ve Kargo Ekibine Excel Üzerinden Sorulur',
+        desc: 'Departmanlar arası ortak bir API bağlantısı bulunmadığından temsilci talepleri Excel tablosuna kaydedip depo ve kargo birimine gönderir.',
+        actor: 'Temsilci & Depo Ekibi',
+        req: 'Departmanlar Arası Kopukluk'
+      },
+      'asis-4': {
+        badge: 'AS-IS ADIM 4',
+        title: 'Depo Ekibi 2–3 İş Günü İçinde Dönüş Sağlar',
+        desc: 'Depo personeli operasyon yoğunluğuna göre Excel listesini kontrol eder ve birkaç gün sonra temsilciye yanıt döner.',
+        actor: 'Depo ve Lojistik',
+        req: 'Süre Uzaması (CSAT %82 -> %64)'
+      },
+      'asis-5': {
+        badge: 'AS-IS ADIM 5',
+        title: 'İade Talebi 4–5. İş Gününde Sonuçlanır',
+        desc: 'Gelen cevaba göre iade onaylanıp manuel kargo kodu oluşturulur veya reddedilir. Uzun bekleme süresi müşteri kaybına yol açar.',
+        actor: 'Müşteri Temsilcisi',
+        req: 'Hedef: < 1 Dakikaya İndirmek'
+      },
+      'tobe-1': {
+        badge: 'TO-BE ADIM 1',
+        title: 'Self-Servis İade & Görsel Yükleme Ekranı',
+        desc: 'Müşteri uygulamaya girer, iade nedenini seçer ve sistem optimizasyonu gereği en fazla 3 adet ve her biri maksimum 5 MB boyutunda fotoğraf yükler.',
+        actor: 'Müşteri & Frontend Ekibi',
+        req: 'FR-01, NFR-01 (Maks. 3 Adet / 5 MB)'
+      },
+      'tobe-2': {
+        badge: 'TO-BE ADIM 2',
+        title: 'Ön Kural, Bulanıklık, Yabancı Cisim ve Kayıp Kargo Kontrolü',
+        desc: 'Sistem önce 14 günlük süreyi ve fotoğrafın bulanıklığını kontrol eder. Bulanık veya kadrajda yabancı ürün varsa yeniden yükleme ister; "Ürün Ulaşmadı" seçildiyse fotoğrafsız Kargo Takip API sorgusuna geçer.',
+        actor: 'Kural Motoru & Ön Kontrol',
+        req: 'FR-02, FR-03, EC-01, EC-02'
+      },
+      'tobe-3': {
+        badge: 'TO-BE ADIM 3',
+        title: 'AI Görüntü İşleme ve İnternet Sahtecilik (Fraud) Araştırması',
+        desc: 'Yapay zeka fotoğrafı internette araştırarak sahte olup olmadığını belirler; yazılım ekibine onay/ret önerisi, hasar yüzdesi, sahtecilik yüzdesi ve bulanıklık verilerini döndürür.',
+        actor: 'Veri Bilimi (AI) Servisi',
+        req: 'FR-04, NFR-02 (< 5 Saniye)'
+      },
+      'tobe-green': {
+        badge: 'YEŞİL HAT (OTOMATİK ONAY)',
+        title: 'Anında Onay, Kargo Kodu API ve Depo (WMS) Kaydı',
+        desc: 'Ürün gerçekten hasarlı (Hasar >= %85), fotoğraf net ve tutar < 5.000 TL ise sistem hemen iade onayı verir, Kargo API ile ücretsiz kod üretir ve WMS sistemine bildirir.',
+        actor: 'Otomatik Karar Motoru',
+        req: 'FR-05, FR-07, US-01'
+      },
+      'tobe-yellow': {
+        badge: 'SARI HAT (TEMSİLCİYE AKTARIM)',
+        title: 'AI Analiz Raporuyla Müşteri Hizmetlerine Aktarım',
+        desc: 'İade tutarı >= 5.000 TL olduğunda (aldatıcı fotoğraf yüklense dahi), AI güven skoru %50–84 arasında kaldığında veya ürün müşteriye ulaşmadığında talep AI raporuyla temsilci ekranına düşer.',
+        actor: 'AI Servisi -> Müşteri Temsilcisi',
+        req: 'FR-06, US-02, AC-01'
+      },
+      'tobe-red': {
+        badge: 'KIRMIZI HAT (OTOMATİK RET)',
+        title: 'Gerekçeli Otomatik Ret (14 Gün Aşımı veya Sahte Görsel)',
+        desc: '14 günlük iade süresi geçmişse veya (< 5.000 TL siparişte) internetten indirilmiş sahte fotoğraf tespit edilirse sistem talebi gerekçesiyle otomatik reddeder.',
+        actor: 'Otomatik Karar Motoru',
+        req: 'FR-02, FR-04'
+      }
+    };
+
+    function selectBpmnNode(nodeKey) {
+      const data = bpmnNodes[nodeKey];
+      if (!data) return;
+      document.querySelectorAll('.bpmn-node').forEach(el => el.classList.remove('active-node'));
+      const target = document.getElementById('node-' + nodeKey);
+      if (target) target.classList.add('active-node');
+
+      document.getElementById('insp-badge').textContent = data.badge;
+      document.getElementById('insp-title').textContent = data.title;
+      document.getElementById('insp-desc').textContent = data.desc;
+      document.getElementById('insp-actor').textContent = data.actor;
+      document.getElementById('insp-req').textContent = data.req;
+    }
+
+    function setFlowFilter(mode) {
+      const asis = document.getElementById('lane-asis');
+      const tobe = document.getElementById('lane-tobe');
+      asis.classList.toggle('hidden', mode === 'tobe');
+      tobe.classList.toggle('hidden', mode === 'asis');
+
+      ['both', 'asis', 'tobe'].forEach(k => {
+        const btn = document.getElementById('flowFilter-' + k);
+        if (k === mode) {
+          btn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 text-white';
+        } else {
+          btn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200';
+        }
+      });
+    }
+
+    // 2. Jira Board Data
+    const jiraTickets = [
+      {
+        key: 'NOVA-101',
+        title: 'US-01: Müşteri Self-Servis İade Kaydı ve Hızlı Geri Ödeme',
+        role: 'Müşteri',
+        type: 'User Story',
+        status: 'done',
+        points: 5,
+        story: 'Müşteri olarak, uygulama üzerinden kolay bir şekilde iade kaydı oluşturmak ve günlerce beklemeden paramı geri almak istiyorum.',
+        ac: 'Diyelim ki (Given): Müşteri 14 gün içindeki <5.000 TL siparişi için net hasarlı fotoğraf yükledi (maks. 3 adet / 5 MB).\nOlduğunda (When): AI hasar yüzdesini >= %85 ve sahtecilik yüzdesini düşük hesapladığında,\nOlmalıdır (Then): Sistem anında onay vermeli ve Kargo API üzerinden iade kodu üretmelidir.'
+      },
+      {
+        key: 'NOVA-102',
+        title: 'AC-01: 5.000 TL Üzeri ve Aldatıcı Fotoğrafların Temsilciye Aktarımı',
+        role: 'Temsilci',
+        type: 'Acceptance Criteria',
+        status: 'done',
+        points: 8,
+        story: 'Bir Müşteri Temsilcisi olarak, yüksek tutarlı (>= 5.000 TL) ve aldatıcı/şüpheli fotoğrafların AI analiziyle ekranıma düşmesini istiyorum.',
+        ac: 'Diyelim ki (Given): İade tutarı 5.000 TL ve üzeri olan bir sipariş seçildiğinde,\nOlduğunda (When): Müşteri sisteme aldatıcı bir fotoğraf yüklediğinde,\nOlmalıdır (Then): Yapay zeka talebi doğrudan reddetmeyip analizi (hasar %, sahtecilik %, bulanıklık) ile beraber müşteri hizmetlerine aktarmalıdır.'
+      },
+      {
+        key: 'NOVA-103',
+        title: 'EC-01: Kadrajda Yabancı Başka Bir Ürünün Görünmesi (Edge Case)',
+        role: 'Müşteri',
+        type: 'Edge Case',
+        status: 'prog',
+        points: 5,
+        story: 'Müşteri ürün fotoğrafını gönderirken yanında yabancı başka bir ürünün de kamerada görünmesi durumunda yanlış AI kararını önleme.',
+        ac: 'Diyelim ki (Given): Müşteri ürün fotoğrafını yüklediğinde,\nOlduğunda (When): Kamerada iade edilecek ürünün yanında yabancı bir ürün daha görünüp nesne güven skoru <%85 olduğunda,\nOlmalıdır (Then): Sistem müşteriden yalnızca ilgili ürünü tek başına fotoğraflamasını istemelidir.'
+      },
+      {
+        key: 'NOVA-104',
+        title: 'EC-02: Ürünün Müşteriye Hiç Ulaşmaması / Kayıp Kargo (Edge Case)',
+        role: 'Müşteri',
+        type: 'Edge Case',
+        status: 'prog',
+        points: 5,
+        story: 'Müşteri ürünün kendisine ulaşmadığını ve bu yüzden iade talep etmek istediğini söylediğinde fotoğrafsız süreç yürütülmesi.',
+        ac: 'Diyelim ki (Given): Müşteri iade nedeni olarak "Ürün Elime Ulaşmadı" seçtiğinde,\nOlduğunda (When): Talep oluştur adımına geçtiğinde,\nOlmalıdır (Then): Fotoğraf yükleme zorunlu tutulmamalı ve Kargo Takip API verisiyle talep müşteri hizmetlerine aktarılmalıdır.'
+      },
+      {
+        key: 'NOVA-105',
+        title: 'FR-04 & Adım 5: Web Sahtecilik Taraması ve AI Veri Kayıt Sözleşmesi',
+        role: 'Teknik',
+        type: 'AI & Backend Task',
+        status: 'done',
+        points: 8,
+        story: 'Yapay zeka fotoğrafı internette araştırmalı ve onay/ret, hasar yüzdesi, sahtecilik yüzdesi ve bulanıklık verilerini kayıt altına alınmak üzere yazılım ekibine döndürmelidir.',
+        ac: 'Diyelim ki (Given): Müşteri geçerli boyutta (<=5 MB) fotoğraf yüklediğinde,\nOlduğunda (When): AI servisi incelemeyi tamamladığında (<5 sn),\nOlmalıdır (Then): JSON çıktısında onay_ret, hasar_yuzdesi, sahtecilik_yuzdesi ve bulaniklik verileri veritabanına kaydedilmelidir.'
+      },
+      {
+        key: 'NOVA-106',
+        title: 'PM Rollout: Beta Kullanıcı Grubu ile Usability Testi',
+        role: 'Teknik',
+        type: 'Rollout Plan',
+        status: 'todo',
+        points: 3,
+        story: 'Sistem aynı anda canlıya alınmamalıdır; öncesinde user usability için küçük bir kullanıcı grubuna Beta sürüm olarak verilmelidir.',
+        ac: 'Diyelim ki (Given): Geliştirme ve Gölge Modu testleri tamamlandığında,\nOlduğunda (When): %10 Beta kullanıcı grubuna sürüm açıldığında,\nOlmalıdır (Then): Beta kullanıcıları aracılığıyla tespit edilen eksikler ve sorunlar giderildikten sonra tam canlıya geçiş yapılmalıdır.'
+      }
+    ];
+
+    let selectedTicketKey = 'NOVA-101';
+
+    function renderJiraBoard() {
+      const filter = document.getElementById('jiraRoleFilter').value;
+      const cols = { todo: [], prog: [], done: [] };
+
+      jiraTickets.forEach(t => {
+        if (filter !== 'ALL' && t.role !== filter) return;
+        cols[t.status].push(t);
+      });
+
+      ['todo', 'prog', 'done'].forEach(st => {
+        const container = document.getElementById('col-' + st);
+        document.getElementById('count-' + st).textContent = cols[st].length;
+        container.innerHTML = cols[st].map(t => `
+          <div onclick="selectJiraTicket('${t.key}')" class="p-3.5 rounded-xl bg-white border-2 ${selectedTicketKey === t.key ? 'border-teal-600 shadow-md' : 'border-slate-200 hover:border-slate-300'} cursor-pointer transition">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[11px] font-mono font-bold text-slate-500">${t.key}</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">${t.type} • ${t.points} SP</span>
+            </div>
+            <div class="text-xs sm:text-sm font-bold text-slate-900 leading-snug">${t.title}</div>
+            <div class="flex items-center justify-between mt-3 pt-2 border-t border-slate-100">
+              <span class="text-[11px] text-teal-700 font-semibold">Rol: ${t.role}</span>
+              <button onclick="event.stopPropagation(); cycleTicketStatus('${t.key}')" class="text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-100 hover:bg-teal-100 text-slate-700 hover:text-teal-900">
+                Durum Değiştir &rarr;
+              </button>
+            </div>
+          </div>
+        `).join('');
+      });
+
+      const active = jiraTickets.find(x => x.key === selectedTicketKey) || jiraTickets[0];
+      if (active) {
+        document.getElementById('jd-key').textContent = active.key;
+        document.getElementById('jd-title').textContent = active.title;
+        document.getElementById('jd-type').textContent = active.type + ' (' + active.points + ' Story Points)';
+        document.getElementById('jd-story').textContent = active.story;
+        document.getElementById('jd-ac').textContent = active.ac;
+      }
+    }
+
+    function selectJiraTicket(key) {
+      selectedTicketKey = key;
+      renderJiraBoard();
+    }
+
+    function cycleTicketStatus(key) {
+      const order = ['todo', 'prog', 'done'];
+      const item = jiraTickets.find(x => x.key === key);
+      if (!item) return;
+      const nextIdx = (order.indexOf(item.status) + 1) % order.length;
+      item.status = order[nextIdx];
+      selectedTicketKey = key;
+      renderJiraBoard();
+    }
+
+    // 3. Live AI Simulator Logic
+    function loadPreset(preset) {
+      const priceEl = document.getElementById('sim-price');
+      const daysEl = document.getElementById('sim-days');
+      const reasonEl = document.getElementById('sim-reason');
+      const photoEl = document.getElementById('sim-photo');
+      const countEl = document.getElementById('sim-count');
+      const sizeEl = document.getElementById('sim-size');
+
+      countEl.value = 2;
+      sizeEl.value = 2.8;
+      daysEl.value = 4;
+      reasonEl.value = 'damaged';
+
+      if (preset === 'green') {
+        priceEl.value = 1250;
+        photoEl.value = 'clear_damaged';
+      } else if (preset === 'highval_fraud') {
+        priceEl.value = 6500;
+        photoEl.value = 'deceptive_web';
+      } else if (preset === 'foreign_obj') {
+        priceEl.value = 950;
+        photoEl.value = 'foreign_object';
+      } else if (preset === 'not_received') {
+        priceEl.value = 2100;
+        reasonEl.value = 'not_received';
+      } else if (preset === 'web_fake') {
+        priceEl.value = 1400;
+        photoEl.value = 'deceptive_web';
+      }
+      runSimulation();
+    }
+
+    function runSimulation() {
+      const price = parseFloat(document.getElementById('sim-price').value) || 0;
+      const days = parseInt(document.getElementById('sim-days').value, 10) || 0;
+      const reason = document.getElementById('sim-reason').value;
+      const photo = document.getElementById('sim-photo').value;
+      const count = parseInt(document.getElementById('sim-count').value, 10) || 1;
+      const size = parseFloat(document.getElementById('sim-size').value) || 1.0;
+
+      const photoBox = document.getElementById('photo-controls-box');
+      photoBox.classList.toggle('opacity-50', reason === 'not_received');
+
+      let badge = '';
+      let cardClass = '';
+      let headline = '';
+      let explanation = '';
+      let damagePct = 0;
+      let fraudPct = 0;
+      let blurry = false;
+      let foreignObj = false;
+      let apiAction = '';
+      let decisionCode = '';
+
+      // Rule 1: 14-day check (FR-02)
+      if (days > 14) {
+        badge = 'KIRMIZI HAT • SÜRE AŞIMI REDDİ (FR-02)';
+        cardClass = 'bg-rose-50 border-rose-500 text-rose-950';
+        headline = 'İade Talebi Otomatik Reddedildi (14 Gün Süre Aşımı)';
+        explanation = `Sipariş teslimatından itibaren ${days} gün geçtiği için (yasal sınır: 14 gün) yapay zeka görüntü işleme modeli çalıştırılmadan talep ön kural motoru tarafından otomatik reddedildi.`;
+        damagePct = 0;
+        fraudPct = 0;
+        apiAction = 'Tetiklenmedi';
+        decisionCode = 'OTOMATIK_RET_SURE_ASIMI';
+      }
+      // Rule 2: Item Not Received Edge Case (EC-02 / AC-03)
+      else if (reason === 'not_received') {
+        badge = 'SARI HAT • KAYIP KARGO İSTİSNASI (EC-02)';
+        cardClass = 'bg-amber-50 border-amber-500 text-amber-950';
+        headline = 'Fotoğrafsız Akış: Kargo Takip API Sorgulandı & Temsilciye Aktarıldı';
+        explanation = 'Müşteri ürünün kendisine hiç ulaşmadığını belirttiği için fotoğraf yükleme zorunluluğu kaldırıldı. Kargo Takip API üzerinden teslimat durumu çekilerek talep müşteri hizmetlerine aktarıldı.';
+        damagePct = 0;
+        fraudPct = 0;
+        apiAction = 'Kargo Takip Sorgulandı';
+        decisionCode = 'TEMSILCIYE_AKTAR_KAYIP_KARGO';
+      }
+      // Rule 3: NFR-01 File count / size validation
+      else if (count > 3 || size > 5.0) {
+        badge = 'ÖN KONTROL UYARISI • DOSYA SINIRI (NFR-01)';
+        cardClass = 'bg-indigo-50 border-indigo-500 text-indigo-950';
+        headline = 'Yükleme Sınırı Aşıldı: Maksimum 3 Fotoğraf ve 5 MB Kuralı';
+        explanation = `Sistem optimizasyonu gereği (NFR-01) en fazla 3 adet ve her biri maksimum 5 MB fotoğraf yüklenebilir. (Girilen: ${count} adet, ${size} MB).`;
+        damagePct = 0;
+        fraudPct = 0;
+        apiAction = 'Beklemede';
+        decisionCode = 'YUKLEME_SINIRI_UYARISI';
+      }
+      // Rule 4: Blurry Photo check (FR-03)
+      else if (photo === 'blurry') {
+        badge = 'ÖN KONTROL UYARISI • BULANIK FOTOĞRAF (FR-03)';
+        cardClass = 'bg-indigo-50 border-indigo-500 text-indigo-950';
+        headline = 'Müşteriden Yeniden Fotoğraf Yüklemesi İstendi';
+        explanation = 'Yüklenen fotoğraf bulanık olduğu için (FR-03) sistem analizi başlatmadı ve müşteriye net bir fotoğraf yüklemesi için anlık bildirim gösterdi.';
+        blurry = true;
+        damagePct = 0;
+        fraudPct = 0;
+        apiAction = 'Yeniden Yükleme İstendi';
+        decisionCode = 'YENIDEN_YUKLEME_BULANIK';
+      }
+      // Rule 5: Foreign Object in Frame Edge Case (EC-01 / AC-02)
+      else if (photo === 'foreign_object') {
+        badge = 'EDGE CASE UYARISI • YABANCI ÜRÜN KADRAJI (EC-01)';
+        cardClass = 'bg-indigo-50 border-indigo-500 text-indigo-950';
+        headline = 'Kamerada Yabancı Ürün Algılandı (Güven Skoru %68 < %85)';
+        explanation = 'İade edilecek ürünün yanında yabancı başka bir nesne daha göründüğü için nesne tanıma güven skoru %85 altına düştü. Müşteriden ürünü tek başına çekmesi istendi.';
+        foreignObj = true;
+        damagePct = 68;
+        fraudPct = 10;
+        apiAction = 'Tek Ürün Fotoğrafı İstendi';
+        decisionCode = 'YENIDEN_YUKLEME_COKLU_NESNE';
+      }
+      // Rule 6: Deceptive / Web-downloaded photo (FR-04 & AC-01)
+      else if (photo === 'deceptive_web') {
+        damagePct = 76;
+        fraudPct = 94;
+        if (price >= 5000) {
+          badge = 'SARI HAT • >= 5.000 TL & ALDATICI FOTOĞRAF (AC-01)';
+          cardClass = 'bg-amber-50 border-amber-500 text-amber-950';
+          headline = 'Yüksek Tutarlı Şüpheli Talep AI Analiziyle Müşteri Hizmetlerine Aktarıldı';
+          explanation = `Müşteri sisteme aldatıcı bir fotoğraf yükledi (%94 sahtecilik riski) ve iade tutarı ${price.toLocaleString('tr-TR')} TL (>= 5.000 TL) olduğu için kabul kriterimiz gereği talep AI analiz raporuyla müşteri temsilcisine aktarıldı.`;
+          apiAction = 'Temsilci Ekranına Aktarıldı';
+          decisionCode = 'TEMSILCIYE_AKTAR_YUKSEK_TUTAR_FRAUD';
+        } else {
+          badge = 'KIRMIZI HAT • SAHTE FOTOĞRAF REDDİ (FR-04)';
+          cardClass = 'bg-rose-50 border-rose-500 text-rose-950';
+          headline = 'İnternetten İndirilmiş Sahte Görsel Tespit Edildi — Otomatik Ret';
+          explanation = `Yapay zeka tersine görsel arama ile fotoğrafın internetten alındığını belirledi (%94 sahtecilik skoru) ve tutar 5.000 TL altında olduğu için talebi otomatik reddetti.`;
+          apiAction = 'Otomatik Ret Kaydedildi';
+          decisionCode = 'OTOMATIK_RET_SAHTE_GORSEL';
+        }
+      }
+      // Rule 7: Clear Damaged Photo
+      else if (photo === 'clear_damaged') {
+        damagePct = 92;
+        fraudPct = 4;
+        if (price >= 5000) {
+          badge = 'SARI HAT • >= 5.000 TL UZMAN ONAYI (FR-06)';
+          cardClass = 'bg-amber-50 border-amber-500 text-amber-950';
+          headline = '5.000 TL Üzeri Sipariş AI Ön Onayı İle Temsilciye Aktarıldı';
+          explanation = `Hasar doğrulandı (%92) ancak sipariş tutarı ${price.toLocaleString('tr-TR')} TL (>= 5.000 TL) olduğu için finansal risk kuralı gereği AI raporuyla temsilci onay ekranına iletildi.`;
+          apiAction = 'Temsilci Onayında';
+          decisionCode = 'TEMSILCIYE_AKTAR_YUKSEK_TUTAR';
+        } else {
+          badge = 'YEŞİL HAT • OTOMATİK ONAY (FR-05)';
+          cardClass = 'bg-emerald-50 border-emerald-500 text-emerald-950';
+          headline = 'İade Anında Onaylandı & Kargo Kodu Oluşturuldu';
+          explanation = `Ürün hasarı %92 güvenle doğrulandı, sahtecilik tespit edilmedi (%4) ve tutar 5.000 TL altında olduğu için saniyeler içinde ücretsiz kargo kodu üretildi.`;
+          apiAction = 'Kargo Kodu + WMS Kaydı';
+          decisionCode = 'OTOMATIK_ONAY_KARGO_KODU';
+        }
+      }
+      // Rule 8: Uncertain score (%50-%84)
+      else {
+        damagePct = 64;
+        fraudPct = 18;
+        badge = 'SARI HAT • BELİRSİZ HASAR SKORU (FR-06)';
+        cardClass = 'bg-amber-50 border-amber-500 text-amber-950';
+        headline = 'AI Güven Skoru %64 — Müşteri Temsilcisine Aktarıldı';
+        explanation = 'Hasar skoru %50–%84 aralığında kaldığı için yapay zeka tek başına karar vermedi ve analiz verilerini müşteri temsilcisi ekranına iletti.';
+        apiAction = 'Temsilci Kuyruğunda';
+        decisionCode = 'TEMSILCIYE_AKTAR_DUSUK_GUVEN';
+      }
+
+      const card = document.getElementById('sim-result-card');
+      card.className = 'rounded-2xl border-2 p-5 shadow-sm transition-all ' + cardClass;
+      document.getElementById('sim-badge').textContent = badge;
+      document.getElementById('sim-headline').textContent = headline;
+      document.getElementById('sim-explanation').textContent = explanation;
+      document.getElementById('metric-damage').textContent = '%' + damagePct;
+      document.getElementById('metric-fraud').textContent = '%' + fraudPct;
+      document.getElementById('metric-api').textContent = apiAction;
+
+      const payload = {
+        talep_id: "NOVA-RET-2026",
+        siparis_tutari_tl: price,
+        gecen_gun_sayisi: days,
+        iade_nedeni: reason,
+        yuklenen_dosya: { adet: count, boyut_mb: size },
+        ai_analiz_sonucu: {
+          onay_ret_onerisi: decisionCode,
+          hasar_yuzdesi: damagePct,
+          sahtecilik_yuzdesi: fraudPct,
+          bulaniklik_durumu: blurry,
+          yabanci_urun_kadraji: foreignObj
+        },
+        kargo_ve_depo_entegrasyonu: apiAction,
+        veritabani_kayit_durumu: "LOGLANDI (Audit & Model Re-Training)"
+      };
+      document.getElementById('sim-json').textContent = JSON.stringify(payload, null, 2);
+    }
+
+    // Main Tab Switcher
+    function switchMainTab(tab) {
+      ['bpmn', 'jira', 'sim'].forEach(t => {
+        document.getElementById('view-' + t).classList.toggle('hidden', t !== tab);
+        const btn = document.getElementById('tabBtn-' + t);
+        if (t === tab) {
+          btn.className = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition bg-teal-600 text-white shadow';
+        } else {
+          btn.className = 'px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition text-slate-300 hover:text-white hover:bg-slate-700/60';
+        }
+      });
+    }
+
+    // Initialize Views
+    renderJiraBoard();
+    runSimulation();
+  </script>
+</body>
+</html>
